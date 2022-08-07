@@ -14,7 +14,7 @@ jobs:
             aws cloudformation deploy \
               --template-file ec2_create.yml \
               --stack-name myStack-$EnvironmentName \
-              --parameter-overrides EnvironmentName=$EnvironmentName
+              --parameter-overrides EnvironmentName=$EnvironmentName \
               --region us-east-1
 
   create_inventory_file:
