@@ -8,11 +8,9 @@ jobs:
       - checkout
       - run:
           command: |
-            pwd
-            ls
             EnvironmentName="udacity-${CIRCLE_WORKFLOW_ID}"
             aws cloudformation deploy \
-              --template-file ec2_create.yml \
+              --template-file ./cloudformation/ec2_create.yml \
               --stack-name myStack-$EnvironmentName \
               --parameter-overrides EnvironmentName=$EnvironmentName \
               --region us-east-1
@@ -24,28 +22,36 @@ jobs:
       - checkout
       - run:
           command: | 
-            mkdir ~/ansible-inventory
+            yum install -y tar
+      - run:
+          command: | 
             ec2TagValue="ec2-udacity-${CIRCLE_WORKFLOW_ID}"
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:Name,Values=$ec2TagValue" \
-              --output text >> ~/ansible-inventory/inventory
+              --output text >> ./ansible-playbook/inventory
+              cat ./ansible-playbook/inventory
       - persist_to_workspace:
-          root: ~/ansible-inventory
+          root: ./ansible-playbook/
           paths:
             - inventory 
   deploy_web_app:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.9-alpine3.16
     steps:
       - checkout
-      - run:
-          command: | 
-            mkdir ~/ansible-inventory
-      - attach_workspace:
-          at: ~/ansible-inventory
+      - add_ssh_keys:
+          fingerprints:
+            - "d9:c6:f6:86:f4:0e:b7:ea:8f:67:88:0e:35:c1:41:b8"
       - run:
           command: |
+            pip install ansible
+      - attach_workspace:
+          at: ./ansible-playbook/
+      - run:
+          command: |
+            pwd
+            ls
             cat inventory
 
 workflows:
