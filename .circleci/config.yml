@@ -28,17 +28,18 @@ jobs:
             echo "[node-web]" > ./ansible-playbook/inventory
             ec2TagValue="ec2-udacity-${CIRCLE_WORKFLOW_ID}"
             aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --query 'Reservations[*].Instances[*].publicDnsName' \
               --filters "Name=tag:Name,Values=$ec2TagValue" \
               --output text >> ./ansible-playbook/inventory
               cat ./ansible-playbook/inventory
       - persist_to_workspace:
           root: ./ansible-playbook/
           paths:
-            - inventory 
+            - inventory
+
   configure_infrastructure:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: circleci/python:3.9
     steps:
       - checkout
       - add_ssh_keys:
@@ -53,7 +54,27 @@ jobs:
           command: |
             cd ./ansible-playbook
             cat inventory
-            ansible-playbook -i inventory remote_node_web.yml 
+            ansible-playbook -i inventory remote_node_web.yml
+
+  smoke_test:
+    docker:
+      - image: alpine:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./ansible-playbook/
+      - run: apk add --update curl git
+      - run:
+          name: smoke test
+          command: |
+            URL=$(grep "amazonaws" ./ansible-playbook/inventory)
+            # Test if website exists
+            if curl -s --head ${URL}:3000
+            then
+              return 0
+            else
+              return 1
+            fi
 
 workflows:
   create-deploy-infrastructure-cicd:
@@ -65,3 +86,6 @@ workflows:
       - configure_infrastructure:
           requires:
             - create_inventory_file
+      - smoke_test:
+          requires:
+            - configure_infrastructure
