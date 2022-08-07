@@ -19,7 +19,7 @@ Resources:
           - Key: project
             Value: !Ref EnvironmentName
           - Key: Name
-            Value: !Ref EnvironmentName
+            Value: !Sub  ec2-${EnvironmentName}
 
   InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
