@@ -1,9 +1,9 @@
 ---
-- name: "install web server"
-  hosts: web
+- name: "install node web"
+  hosts: node-web
   gather_facts: false
   vars:
     - ansible_python_interpreter: /usr/bin/python3
     - ansible_host_key_checking: false
   roles:
-   - apache
+   - setup
