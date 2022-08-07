@@ -70,10 +70,12 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
+      - run:
+          command: | 
+            yum install -y openssh-client ca-certificates tar gzip git curl wget
       - checkout
       - attach_workspace:
           at: ./ansible-playbook/
-      - run: yum install -y curl git openssh-client gzip tar
       - run:
           name: smoke test
           command: |
