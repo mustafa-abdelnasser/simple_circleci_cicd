@@ -8,6 +8,8 @@ jobs:
       - checkout
       - run:
           command: |
+            pwd
+            ls
             EnvironmentName="udacity-${CIRCLE_WORKFLOW_ID}"
             aws cloudformation deploy \
               --template-file ec2_create.yml \
