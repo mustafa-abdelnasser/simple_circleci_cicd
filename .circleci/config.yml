@@ -1,31 +1,58 @@
 version: 2.1
 
-orbs:
-  welcome: circleci/welcome-orb@0.4.1
-
 jobs:
-  print_hello:
+  create_infrastructure:
     docker:
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       - checkout
       - run:
           command: |
-            echo "hello"
-  print_world:
+            EnvironmentName="udacity-${CIRCLE_WORKFLOW_ID:0:5}"
+            aws cloudformation deploy \
+              --template-file ec2_create.yml \
+              --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
+              --parameter-overrides EnvironmentName=$EnvironmentName
+              --region us-east-1
+
+  create_inventory_file:
     docker:
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       - checkout
       - run:
+          command: | 
+            mkdir ~/ansible-inventory
+            ec2TagValue="ec2-udacity-${CIRCLE_WORKFLOW_ID:0:5}"
+            aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:Name,Values=$ec2TagValue" \
+              --output text >> ~/ansible-inventory/inventory
+      - persist_to_workspace:
+          root: ~/ansible-inventory
+          paths:
+            - inventory 
+  deploy_web_app:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          command: | 
+            mkdir ~/ansible-inventory
+      - attach_workspace:
+          at: ~/ansible-inventory
+      - run:
           command: |
-            echo "world"
+            cat inventory
 
 workflows:
   say-hello:
     jobs:
-      - welcome/run
-      - print_hello
-      - print_world:
+      - create_infrastructure
+      - create_inventory_file:
           requires:
-            - print_hello
+            - create_infrastructure
+      - deploy_web_app:
+          requires:
+            - create_inventory_file
