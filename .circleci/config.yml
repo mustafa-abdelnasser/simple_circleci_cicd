@@ -38,7 +38,7 @@ jobs:
             echo "[node-web]" > ./ansible-playbook/inventory
             ec2TagValue="ec2-udacity-${CIRCLE_WORKFLOW_ID}"
             aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].publicDnsName' \
+              --query 'Reservations[*].Instances[*].PublicDnsName' \
               --filters "Name=tag:Name,Values=$ec2TagValue" \
               --output text >> ./ansible-playbook/inventory
               cat ./ansible-playbook/inventory
@@ -68,18 +68,19 @@ jobs:
 
   smoke_test:
     docker:
-      - image: alpine:latest
+      - image: amazon/aws-cli
     steps:
       - checkout
       - attach_workspace:
           at: ./ansible-playbook/
-      - run: apk add --update curl git openssh-client gzip tar
+      - run: yum install -y curl git openssh-client gzip tar
       - run:
           name: smoke test
           command: |
-            URL=$(grep "amazonaws" ./ansible-playbook/inventory)
             pwd
             ls
+            cat ./ansible-playbook/inventory
+            URL=$(grep "amazonaws" ./ansible-playbook/inventory)
             echo $URL
             # Test if website exists
             if curl -s --head ${URL}:3000
