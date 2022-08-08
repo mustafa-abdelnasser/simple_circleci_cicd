@@ -1,0 +1,35 @@
+version: 2.1
+
+commands:
+  destroy_environment:
+    steps:
+      - run:
+          name: Destroy Environement
+          command: |
+            echo "rollback the env"
+jobs:
+  smoke_test:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - run:
+          name: "prepare the environment"
+          command: | 
+            yum install -y openssh-client ca-certificates tar gzip git curl wget
+      - checkout
+      - run:
+          name: smoke test
+          command: |
+            pwd
+            ls
+            URL= "google.comff" 
+            echo $URL
+            # Test if website exists
+            curl -s --head ${URL}
+      - destroy_environment
+        when: on_fail
+
+workflows:
+  create-deploy-infrastructure-cicd:
+    jobs:
+      - smoke_test
