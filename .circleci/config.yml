@@ -86,9 +86,10 @@ jobs:
             ls
             cat ./ansible-playbook/inventory
             URL=$(grep "amazonaws" ./ansible-playbook/inventory)
+            echo "URL"
             echo $URL
             # Test if website exists
-            curl -s --head ${URL}:3000
+            curl -s --head ${URL}
       - destroy_environment:
           when: on_fail
 
