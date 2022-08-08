@@ -10,6 +10,7 @@ commands:
           name: Destroy Environement
           command: |
             echo "rollback the env"
+          when: <<parameters.when>>
 jobs:
   smoke_test:
     docker:
