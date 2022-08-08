@@ -89,7 +89,8 @@ jobs:
             echo $URL
             # Test if website exists
             curl -s --head ${URL}:3000
-      - destroy_environment
+      - destroy_environment:
+          when: on_fail
 
 workflows:
   create-deploy-infrastructure-cicd:
