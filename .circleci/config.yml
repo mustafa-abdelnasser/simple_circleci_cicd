@@ -2,13 +2,16 @@ version: 2.1
 
 commands:
   destroy_environment:
+    parameters:
+      when:
+        type: string
     steps:
       - run:
           name: Destroy Environement
-          when: on_fail
           command: |
             EnvironmentName="udacity-${CIRCLE_WORKFLOW_ID}"
             aws cloudformation delete-stack --stack-name myStack-$EnvironmentName
+          when: <<parameters.when>>
 
 jobs:
   create_infrastructure:
@@ -54,7 +57,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "1d:c2:25:0f:6d:98:c7:f9:6c:2b:bd:93:0a:45:a5:40"
+            - "c9:33:eb:76:d4:e5:b7:ba:ba:56:a7:a2:09:3b:43:36"
       - run:
           command: |
             pip install ansible
