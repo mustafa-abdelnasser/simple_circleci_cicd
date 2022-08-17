@@ -35,6 +35,8 @@ jobs:
             yum install -y openssh-client ca-certificates tar gzip git curl wget
       - run:
           command: | 
+            pwd
+            ls
             echo "[node-web]" > ./ansible-playbook/inventory
             ec2TagValue="ec2-udacity-${CIRCLE_WORKFLOW_ID}"
             aws ec2 describe-instances \
